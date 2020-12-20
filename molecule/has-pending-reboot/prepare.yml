@@ -1,0 +1,19 @@
+---
+- name: Prepare
+  hosts: all
+  gather_facts: false
+  vars:
+    powershell_path: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+  tasks:
+    - name: Add scheduled task to clean simulated pending reboot after reboot
+      win_scheduled_task:
+        name: Clean simulated pending reboot created for windows-pending-reboot test
+        username: SYSTEM
+        run_level: highest
+        triggers:
+          - type: boot
+        actions:
+          - path: "{{ powershell_path }}"
+            arguments: Remove-Item -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired'
+    - name: Simulate pending reboot
+      win_shell: New-Item -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update' -Name RebootRequired
